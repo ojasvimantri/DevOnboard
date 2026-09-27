@@ -1,0 +1,1275 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DevOnboard — Understand any codebase faster</title>
+  <style>
+    /* ── Reset & Base ──────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #ffffff;
+      --surface:   #f7f8fa;
+      --surface2:  #f0f2f5;
+      --border:    #e5e7eb;
+      --text:      #1f2328;
+      --muted:     #57606a;
+      --accent:    #2563eb;
+      --accent-dk: #1d4ed8;
+      --accent-bg: #eff6ff;
+      --green:     #16a34a;
+      --green-bg:  #f0fdf4;
+      --amber:     #b45309;
+      --amber-bg:  #fffbeb;
+      --purple:    #7c5cd8;
+      --purple-bg: #f5f3ff;
+      --ibm:       #0f62fe;
+      --ibm-bg:    #edf4ff;
+      --radius:    8px;
+      --radius-lg: 14px;
+      --shadow:    0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,.09), 0 2px 4px rgba(0,0,0,.05);
+      --shadow-lg: 0 10px 28px rgba(0,0,0,.10), 0 4px 10px rgba(0,0,0,.06);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+      font-size: 15px; line-height: 1.65;
+      color: var(--text); background: var(--bg);
+    }
+
+    /* ── Screens ───────────────────────────────────────────── */
+    .screen { display: none; min-height: 100vh; }
+    .screen.active { display: flex; flex-direction: column; }
+    #screen-report { flex-direction: row; }
+
+    /* ════════════════════════════════════════════
+       GLOBAL NAV
+    ════════════════════════════════════════════ */
+    .global-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+      background: rgba(255,255,255,.96); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      height: 56px; display: flex; align-items: center; padding: 0 28px; gap: 0;
+    }
+    .global-nav .nav-brand {
+      font-size: 17px; font-weight: 800; letter-spacing: -0.4px;
+      color: var(--text); text-decoration: none; cursor: pointer; margin-right: 28px;
+    }
+    .global-nav .nav-brand span { color: var(--accent); }
+    .global-nav .nav-links { display: flex; gap: 2px; flex: 1; }
+    .global-nav .nav-links a {
+      padding: 6px 13px; border-radius: 6px;
+      font-size: 13.5px; font-weight: 500; color: var(--muted);
+      text-decoration: none; cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .global-nav .nav-links a:hover { background: var(--surface2); color: var(--text); }
+    .global-nav .nav-links a.active { color: var(--accent); background: var(--accent-bg); }
+    .global-nav .nav-cta {
+      padding: 7px 16px; border-radius: 7px; background: var(--accent);
+      color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
+      border: none; text-decoration: none; transition: background .15s;
+    }
+    .global-nav .nav-cta:hover { background: var(--accent-dk); }
+    .nav-hamburger {
+      display: none; background: none; border: none;
+      font-size: 22px; cursor: pointer; color: var(--text); margin-left: auto;
+    }
+    @media (max-width: 640px) {
+      .global-nav .nav-links { display: none; }
+      .global-nav .nav-cta  { display: none; }
+      .nav-hamburger { display: block; }
+    }
+
+    /* ════════════════════════════════════════════
+       SCREEN: HOME
+    ════════════════════════════════════════════ */
+    #screen-home { padding-top: 56px; background: var(--bg); }
+
+    .home-hero {
+      padding: 72px 40px 56px; text-align: center;
+      max-width: 760px; margin: 0 auto;
+    }
+    .home-hero .eyebrow {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--ibm-bg); color: var(--ibm); border: 1px solid #bbd4ff;
+      padding: 4px 12px; border-radius: 100px;
+      font-size: 12px; font-weight: 700; letter-spacing: .04em; margin-bottom: 22px;
+    }
+    .home-hero h1 {
+      font-size: clamp(30px, 5vw, 50px); font-weight: 800;
+      letter-spacing: -1px; line-height: 1.15; color: var(--text); margin-bottom: 18px;
+    }
+    .home-hero h1 span { color: var(--accent); }
+    .home-hero .subtitle {
+      font-size: 17px; color: var(--muted); line-height: 1.75;
+      max-width: 540px; margin: 0 auto 32px;
+    }
+    .cta-group { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      padding: 12px 26px; background: var(--accent); color: #fff;
+      border: none; border-radius: 8px; font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: background .15s, transform .12s;
+    }
+    .btn-primary:hover { background: var(--accent-dk); transform: translateY(-1px); }
+    .btn-secondary {
+      padding: 12px 26px; background: var(--surface); color: var(--text);
+      border: 1px solid var(--border); border-radius: 8px;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      transition: background .15s, transform .12s;
+    }
+    .btn-secondary:hover { background: var(--surface2); transform: translateY(-1px); }
+
+    /* Problem / Solution stripe */
+    .home-problem {
+      background: var(--surface);
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      padding: 52px 40px;
+    }
+    .home-problem-inner {
+      max-width: 860px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    }
+    @media (max-width: 640px) { .home-problem-inner { grid-template-columns: 1fr; } }
+    .problem-card {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 26px; box-shadow: var(--shadow);
+    }
+    .problem-card .card-label {
+      font-size: 11px; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; margin-bottom: 10px;
+    }
+    .problem-card.before .card-label { color: var(--amber); }
+    .problem-card.after  .card-label { color: var(--green); }
+    .problem-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+    .problem-card ul { padding-left: 18px; }
+    .problem-card li { margin-bottom: 6px; font-size: 13.5px; color: var(--muted); }
+
+    /* IBM Bob features section */
+    .home-bob { max-width: 860px; margin: 0 auto; padding: 52px 40px; }
+    .section-title {
+      font-size: 23px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 6px;
+    }
+    .section-sub { font-size: 14.5px; color: var(--muted); margin-bottom: 28px; }
+    .bob-features {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 14px;
+    }
+    .bob-feature {
+      background: var(--ibm-bg); border: 1px solid #bbd4ff;
+      border-radius: var(--radius-lg); padding: 18px;
+    }
+    .bob-feature .feat-icon { font-size: 22px; margin-bottom: 10px; }
+    .bob-feature .feat-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+    .bob-feature .feat-desc  { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+    /* Flow */
+    .home-flow {
+      background: var(--surface);
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      padding: 52px 40px;
+    }
+    .home-flow-inner { max-width: 680px; margin: 0 auto; text-align: center; }
+    .flow-steps {
+      display: flex; flex-direction: column; align-items: center;
+      margin: 28px auto; max-width: 380px;
+    }
+    .flow-step {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 11px 24px;
+      font-size: 14px; font-weight: 600; width: 100%; text-align: center;
+      box-shadow: var(--shadow);
+    }
+    .flow-step.ibm-step { background: var(--ibm); color: #fff; border-color: var(--ibm); }
+    .flow-arrow { font-size: 18px; color: var(--muted); padding: 3px 0; }
+
+    /* Project selector */
+    .home-projects { max-width: 860px; margin: 0 auto; padding: 52px 40px 60px; }
+    .project-cards {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px; margin-top: 22px;
+    }
+    .project-card {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 22px;
+      cursor: pointer; transition: box-shadow .2s, border-color .2s, transform .15s;
+      box-shadow: var(--shadow);
+    }
+    .project-card:hover {
+      box-shadow: var(--shadow-lg); border-color: var(--accent); transform: translateY(-2px);
+    }
+    .project-card.selected {
+      border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg), var(--shadow-md);
+    }
+    .project-card .proj-icon { font-size: 26px; margin-bottom: 10px; }
+    .project-card .proj-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .project-card .proj-desc { font-size: 13px; color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
+    .proj-tech { display: flex; flex-wrap: wrap; gap: 5px; }
+    .proj-tech-tag {
+      font-size: 11px; font-weight: 600; padding: 2px 7px;
+      border-radius: 100px; background: var(--surface2);
+      color: var(--muted); border: 1px solid var(--border);
+    }
+
+    /* ════════════════════════════════════════════
+       SCREEN: ANALYZE
+    ════════════════════════════════════════════ */
+    #screen-analyze { padding-top: 56px; background: var(--bg); }
+    .analyze-inner { max-width: 660px; margin: 0 auto; padding: 48px 32px 80px; }
+    .analyze-inner h2 { font-size: 25px; font-weight: 800; margin-bottom: 6px; }
+    .analyze-inner .sub { font-size: 14.5px; color: var(--muted); margin-bottom: 28px; }
+
+    .project-info-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 22px; margin-bottom: 20px;
+    }
+    .pi-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+    .pi-icon { font-size: 30px; }
+    .pi-name { font-size: 17px; font-weight: 700; }
+    .pi-tag  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .pi-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .pi-stat {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 12px; text-align: center;
+    }
+    .pi-stat .stat-num { font-size: 20px; font-weight: 800; color: var(--accent); }
+    .pi-stat .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    .ibm-notice {
+      display: flex; gap: 14px; align-items: flex-start;
+      background: var(--ibm-bg); border: 1px solid #bbd4ff;
+      border-radius: var(--radius-lg); padding: 16px 18px; margin-bottom: 20px;
+    }
+    .ibm-notice .notice-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+    .ibm-notice .notice-text { font-size: 13px; line-height: 1.65; }
+    .ibm-notice strong { color: var(--ibm); }
+
+    .analyze-btn {
+      width: 100%; padding: 14px; background: var(--accent); color: #fff;
+      border: none; border-radius: 8px; font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: background .15s;
+    }
+    .analyze-btn:hover { background: var(--accent-dk); }
+
+    /* ════════════════════════════════════════════
+       SCREEN: PROCESSING
+    ════════════════════════════════════════════ */
+    #screen-processing {
+      padding-top: 56px; background: var(--bg);
+      align-items: center; justify-content: center;
+    }
+    .processing-inner { max-width: 500px; text-align: center; padding: 40px 28px; }
+    .processing-inner h2 { font-size: 21px; font-weight: 800; margin-bottom: 6px; }
+    .processing-inner .sub { font-size: 14px; color: var(--muted); margin-bottom: 32px; }
+
+    .ibm-logo {
+      width: 52px; height: 52px; background: var(--ibm); border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; margin: 0 auto 22px; color: #fff; font-weight: 900;
+      animation: ibm-pulse 2s ease-in-out infinite;
+    }
+    @keyframes ibm-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(15,98,254,.4); }
+      50%       { box-shadow: 0 0 0 14px rgba(15,98,254,0); }
+    }
+
+    .processing-steps { text-align: left; margin: 0 auto 28px; max-width: 360px; }
+    .proc-step {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px; border-radius: var(--radius);
+      margin-bottom: 5px; transition: background .3s;
+      font-size: 14px; color: var(--muted);
+    }
+    .proc-step.done    { color: var(--green); }
+    .proc-step.running { background: var(--accent-bg); color: var(--accent); font-weight: 600; }
+    .proc-step .step-icon { width: 20px; text-align: center; font-size: 14px; flex-shrink: 0; }
+    .proc-step .step-spin {
+      width: 15px; height: 15px; flex-shrink: 0;
+      border: 2px solid var(--border); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin .6s linear infinite;
+    }
+
+    .processing-bar {
+      height: 4px; background: var(--surface2); border-radius: 100px;
+      overflow: hidden; margin-bottom: 10px;
+    }
+    .processing-bar-fill {
+      height: 100%; background: var(--accent); border-radius: 100px;
+      width: 0%; transition: width .5s ease;
+    }
+    .processing-pct { font-size: 12.5px; color: var(--muted); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ════════════════════════════════════════════
+       SCREEN: REPORT
+    ════════════════════════════════════════════ */
+    #screen-report { padding-top: 56px; }
+
+    #sidebar {
+      position: fixed; top: 56px; left: 0;
+      width: 248px; height: calc(100vh - 56px);
+      background: var(--surface); border-right: 1px solid var(--border);
+      overflow-y: auto; display: flex; flex-direction: column; z-index: 100;
+    }
+    .sidebar-project {
+      padding: 14px 16px 12px; border-bottom: 1px solid var(--border);
+    }
+    .sidebar-project .sp-name { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+    .sidebar-project .sp-meta { font-size: 11px; color: var(--muted); }
+    .sidebar-project .sp-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: var(--ibm-bg); color: var(--ibm); border: 1px solid #bbd4ff;
+      padding: 2px 8px; border-radius: 100px; font-size: 10px; font-weight: 700; margin-top: 6px;
+    }
+    #nav { padding: 6px 0; flex: 1; }
+    .nav-label {
+      font-size: 10px; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--muted); padding: 8px 16px 4px;
+    }
+    #nav a {
+      display: flex; align-items: center; gap: 7px;
+      padding: 7px 16px; font-size: 13px; color: var(--muted);
+      text-decoration: none; border-left: 3px solid transparent;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    #nav a:hover  { background: var(--surface2); color: var(--text); }
+    #nav a.active {
+      background: var(--accent-bg); color: var(--accent);
+      border-left-color: var(--accent); font-weight: 600;
+    }
+    #nav a .nav-icon { font-size: 12px; flex-shrink: 0; }
+    .sidebar-back { padding: 10px 14px; border-top: 1px solid var(--border); }
+    .sidebar-back button {
+      width: 100%; padding: 8px; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 6px;
+      font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--muted);
+      transition: background .15s, color .15s;
+    }
+    .sidebar-back button:hover { background: var(--accent-bg); color: var(--accent); }
+    .sidebar-footer {
+      padding: 10px 16px; border-top: 1px solid var(--border);
+      font-size: 11px; color: var(--muted); line-height: 1.5;
+    }
+    .sidebar-footer a { color: var(--accent); text-decoration: none; }
+    .sidebar-footer a:hover { text-decoration: underline; }
+
+    #main { margin-left: 248px; flex: 1; min-width: 0; }
+    #topbar {
+      position: sticky; top: 56px;
+      background: rgba(255,255,255,.94); backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 32px; display: flex; align-items: center;
+      justify-content: space-between; z-index: 50;
+    }
+    #topbar .project-title { font-size: 15px; font-weight: 700; color: var(--text); }
+    #topbar .meta { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 12px; }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 600;
+    }
+    .badge-blue   { background: var(--accent-bg); color: var(--accent); }
+    .badge-green  { background: var(--green-bg);  color: var(--green); }
+    .badge-amber  { background: var(--amber-bg);  color: var(--amber); }
+    .badge-purple { background: var(--purple-bg); color: var(--purple); }
+    .badge-ibm    { background: var(--ibm-bg);    color: var(--ibm); border: 1px solid #bbd4ff; }
+
+    #content { max-width: 820px; margin: 0 auto; padding: 32px 32px 80px; }
+
+    .section-card {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 24px 28px;
+      margin-bottom: 16px; box-shadow: var(--shadow); scroll-margin-top: 110px;
+    }
+    .section-card h2 {
+      font-size: 17px; font-weight: 700; color: var(--text);
+      margin-bottom: 14px; padding-bottom: 11px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .hero-card {
+      background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 100%);
+      border: none; color: white; padding: 30px 34px; margin-bottom: 18px;
+      border-radius: var(--radius-lg); box-shadow: var(--shadow-md);
+    }
+    .hero-card h1 {
+      font-size: 23px; font-weight: 800; letter-spacing: -0.5px;
+      margin-bottom: 8px; color: white;
+    }
+    .hero-card .hero-desc { font-size: 14px; opacity: .88; margin-bottom: 14px; line-height: 1.65; }
+    .hero-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .hero-meta .badge {
+      background: rgba(255,255,255,.15); color: white;
+      border: 1px solid rgba(255,255,255,.25);
+    }
+
+    /* Markdown */
+    #content p         { margin-bottom: 12px; color: var(--text); }
+    #content h1        { display: none; }
+    #content h3 {
+      font-size: 12.5px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .06em; color: var(--muted); margin: 18px 0 8px;
+    }
+    #content ul, #content ol { padding-left: 20px; margin-bottom: 12px; }
+    #content li  { margin-bottom: 5px; }
+    #content a   { color: var(--accent); text-decoration: none; }
+    #content a:hover { text-decoration: underline; }
+    #content strong { font-weight: 600; }
+    #content em { font-style: italic; color: var(--muted); }
+    #content blockquote {
+      border-left: 3px solid var(--accent); background: var(--accent-bg);
+      padding: 10px 15px; border-radius: 0 var(--radius) var(--radius) 0;
+      color: var(--muted); font-style: italic; margin: 12px 0;
+    }
+    #content hr { border: none; border-top: 1px solid var(--border); margin: 22px 0; }
+
+    .table-wrap { overflow-x: auto; margin: 12px 0; }
+    #content table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    #content th {
+      background: var(--surface); text-align: left; padding: 8px 13px;
+      font-weight: 700; font-size: 11.5px; text-transform: uppercase;
+      letter-spacing: .05em; color: var(--muted); border-bottom: 2px solid var(--border);
+    }
+    #content td { padding: 8px 13px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    #content tr:last-child td { border-bottom: none; }
+    #content tr:hover td { background: var(--surface); }
+
+    #content pre {
+      background: #1a1f2e; color: #e2e8f0; padding: 16px 18px;
+      border-radius: var(--radius); overflow-x: auto;
+      font-size: 13px; line-height: 1.6; margin: 12px 0;
+    }
+    #content code { font-family: "SF Mono","Fira Code","Fira Mono",Menlo,Consolas,monospace; }
+    #content :not(pre) > code {
+      background: var(--surface2); color: #c026d3;
+      padding: 1px 5px; border-radius: 4px; font-size: 13px;
+    }
+
+    .report-footer {
+      text-align: center; padding: 26px; font-size: 12px;
+      color: var(--muted); border-top: 1px solid var(--border); margin-top: 14px;
+    }
+    .report-footer a { color: var(--accent); text-decoration: none; }
+    .ibm-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #1f2328; color: white; padding: 5px 12px;
+      border-radius: 6px; font-size: 11px; font-weight: 700;
+      letter-spacing: .04em; margin-top: 8px;
+    }
+
+    #scroll-top {
+      position: fixed; bottom: 24px; right: 24px;
+      width: 38px; height: 38px; background: var(--accent);
+      color: white; border: none; border-radius: 50%;
+      font-size: 16px; cursor: pointer; box-shadow: var(--shadow-md);
+      opacity: 0; transform: translateY(10px);
+      transition: opacity .25s, transform .25s; z-index: 200;
+    }
+    #scroll-top.visible { opacity: 1; transform: translateY(0); }
+
+    #menu-toggle {
+      display: none; background: none; border: none;
+      font-size: 20px; cursor: pointer; color: var(--text); padding: 4px;
+    }
+    @media (max-width: 768px) {
+      #sidebar { transform: translateX(-100%); transition: transform .25s ease; }
+      #sidebar.open { transform: translateX(0); }
+      #main { margin-left: 0; }
+      #menu-toggle { display: block; }
+      #content { padding: 20px 16px 60px; }
+      #topbar  { padding: 10px 16px; }
+      .hero-card { padding: 22px 18px; }
+      .section-card { padding: 18px 18px; }
+    }
+
+    #status {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; min-height: 60vh; gap: 14px; color: var(--muted);
+    }
+    .spinner {
+      width: 34px; height: 34px;
+      border: 3px solid var(--border); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin .7s linear infinite;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     GLOBAL NAVIGATION
+════════════════════════════════════════════ -->
+<nav class="global-nav" id="global-nav">
+  <span class="nav-brand" onclick="showScreen('home')">Dev<span>Onboard</span></span>
+  <div class="nav-links">
+    <a onclick="showScreen('home')"        id="nav-home"    class="active">Home</a>
+    <a onclick="showScreen('analyze')"     id="nav-analyze" >Analyze</a>
+    <a onclick="goToReport()"              id="nav-report"  >Report</a>
+    <a onclick="showScreen('howitworks')"  id="nav-how"     >How It Works</a>
+  </div>
+  <button class="nav-cta" onclick="showScreen('analyze')">Analyze a Codebase</button>
+  <button class="nav-hamburger" onclick="toggleMobileNav()" aria-label="Menu">☰</button>
+</nav>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: HOME
+════════════════════════════════════════════ -->
+<section class="screen active" id="screen-home">
+
+  <div class="home-hero">
+    <div class="eyebrow">⚡ Powered by IBM Bob</div>
+    <h1>Understand any codebase<br><span>faster.</span></h1>
+    <p class="subtitle">
+      IBM Bob reads your project, analyzes the architecture, and generates
+      a structured first-day guide — so your team can contribute sooner.
+    </p>
+    <div class="cta-group">
+      <button class="btn-primary"    onclick="showScreen('analyze')">Analyze a Codebase</button>
+      <button class="btn-secondary"  onclick="goToReport()">View Demo Report</button>
+    </div>
+  </div>
+
+  <div class="home-problem">
+    <div class="home-problem-inner">
+      <div class="problem-card before">
+        <div class="card-label">&#x26A0; Before DevOnboard</div>
+        <h3>Manual codebase exploration</h3>
+        <ul>
+          <li>Read scattered README files for context</li>
+          <li>Trace entry points across multiple folders</li>
+          <li>Hunt for environment variable definitions</li>
+          <li>Reverse-engineer the architecture pattern</li>
+          <li>Find startup commands by trial and error</li>
+        </ul>
+      </div>
+      <div class="problem-card after">
+        <div class="card-label">&#x2713; After DevOnboard</div>
+        <h3>One structured starting point</h3>
+        <ul>
+          <li>Project overview and purpose on page one</li>
+          <li>Full technology stack with versions</li>
+          <li>Step-by-step run instructions</li>
+          <li>Architecture diagram and request flow</li>
+          <li>Suggested first task scoped to 1&#8211;2 days</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-bob">
+    <div class="section-title">Powered by IBM Bob</div>
+    <div class="section-sub">IBM Bob is the intelligence engine &#8212; not a tool used to <em>build</em> DevOnboard, but the runtime that <em>runs</em> it.</div>
+    <div class="bob-features">
+      <div class="bob-feature">
+        <div class="feat-icon">&#x1F5C2;&#xFE0F;</div>
+        <div class="feat-title">Discovery</div>
+        <div class="feat-desc">Bob reads READMEs, package files, entry points, routes, middleware, and config</div>
+      </div>
+      <div class="bob-feature">
+        <div class="feat-icon">&#x1F50D;</div>
+        <div class="feat-title">Architecture Analysis</div>
+        <div class="feat-desc">Bob identifies MVC, layered, or hexagonal patterns and maps the request flow</div>
+      </div>
+      <div class="bob-feature">
+        <div class="feat-icon">&#x1F4E6;</div>
+        <div class="feat-title">Dependency Mapping</div>
+        <div class="feat-desc">Bob explains every runtime and dev dependency in plain language</div>
+      </div>
+      <div class="bob-feature">
+        <div class="feat-icon">&#x270D;&#xFE0F;</div>
+        <div class="feat-title">Guide Generation</div>
+        <div class="feat-desc">Bob writes <code>docs/ONBOARDING.md</code> using a 10-section structured template</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-flow">
+    <div class="home-flow-inner">
+      <div class="section-title">How it works</div>
+      <div class="section-sub">One command. Complete onboarding guide.</div>
+      <div class="flow-steps">
+        <div class="flow-step">Your codebase</div>
+        <div class="flow-arrow">&#x2193;</div>
+        <div class="flow-step ibm-step">IBM Bob &#8212; New Dev Mode</div>
+        <div class="flow-arrow">&#x2193;</div>
+        <div class="flow-step">Discovery &amp; Analysis</div>
+        <div class="flow-arrow">&#x2193;</div>
+        <div class="flow-step">Structured Onboarding Guide</div>
+        <div class="flow-arrow">&#x2193;</div>
+        <div class="flow-step">DevOnboard Viewer</div>
+      </div>
+      <button class="btn-primary" onclick="showScreen('analyze')" style="margin-top:12px;">Try the Demo</button>
+    </div>
+  </div>
+
+  <div class="home-projects">
+    <div class="section-title">Demo Projects</div>
+    <div class="section-sub">Select a project to analyze. Add yours by running <code>/onboard</code> in IBM Bob.</div>
+    <div class="project-cards">
+      <div class="project-card selected" id="proj-taskflow" onclick="selectProject('taskflow')">
+        <div class="proj-icon">&#x26A1;</div>
+        <div class="proj-name">TaskFlow API</div>
+        <div class="proj-desc">Production-ready RESTful task management API with JWT auth, teams, and real-time notifications.</div>
+        <div class="proj-tech">
+          <span class="proj-tech-tag">Node.js</span>
+          <span class="proj-tech-tag">Express</span>
+          <span class="proj-tech-tag">PostgreSQL</span>
+          <span class="proj-tech-tag">Redis</span>
+          <span class="proj-tech-tag">Socket.io</span>
+        </div>
+      </div>
+      <div class="project-card" onclick="showScreen('analyze')" style="border-style:dashed;opacity:.7;">
+        <div class="proj-icon">&#x2795;</div>
+        <div class="proj-name">Your Project</div>
+        <div class="proj-desc">Open your own codebase in IBM Bob and run <code>/onboard</code> to generate a guide.</div>
+        <div class="proj-tech">
+          <span class="proj-tech-tag">Any language</span>
+          <span class="proj-tech-tag">Any framework</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: HOW IT WORKS
+════════════════════════════════════════════ -->
+<section class="screen" id="screen-howitworks" style="padding-top:56px;background:var(--bg);">
+  <div style="max-width:700px;margin:0 auto;padding:48px 32px 80px;">
+    <div class="section-title">How IBM Bob Powers DevOnboard</div>
+    <div class="section-sub" style="margin-bottom:28px;">The analysis pipeline runs entirely inside IBM Bob &#8212; no backend, no API, no cloud service.</div>
+
+    <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:36px;">
+      <div class="section-card" style="padding:18px 22px;">
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <div style="background:var(--ibm);color:#fff;border-radius:50%;width:30px;height:30px;min-width:30px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;">1</div>
+          <div><div style="font-weight:700;margin-bottom:4px;">Open project in IBM Bob</div><div style="font-size:13px;color:var(--muted);">Open the DevOnboard workspace (or any project) in IBM Bob IDE. The <code>.bob/</code> configuration folder is detected automatically.</div></div>
+        </div>
+      </div>
+      <div class="section-card" style="padding:18px 22px;">
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <div style="background:var(--ibm);color:#fff;border-radius:50%;width:30px;height:30px;min-width:30px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;">2</div>
+          <div><div style="font-weight:700;margin-bottom:4px;">Switch to New Dev Onboarding mode</div><div style="font-size:13px;color:var(--muted);">Activate the <strong>&#x1F9ED; New Dev Onboarding</strong> custom mode. Bob&#8217;s persona becomes a staff engineer focused on codebase analysis. Source files become read-only.</div></div>
+        </div>
+      </div>
+      <div class="section-card" style="padding:18px 22px;">
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <div style="background:var(--ibm);color:#fff;border-radius:50%;width:30px;height:30px;min-width:30px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;">3</div>
+          <div><div style="font-weight:700;margin-bottom:4px;">Run <code>/onboard</code></div><div style="font-size:13px;color:var(--muted);">The slash command activates the onboarding skill and starts the 3-phase workflow: Discovery &#x2192; Analysis &#x2192; Output.</div></div>
+        </div>
+      </div>
+      <div class="section-card" style="padding:18px 22px;">
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <div style="background:var(--ibm);color:#fff;border-radius:50%;width:30px;height:30px;min-width:30px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;">4</div>
+          <div><div style="font-weight:700;margin-bottom:4px;">Bob reads and analyzes the codebase</div><div style="font-size:13px;color:var(--muted);">Bob reads READMEs, package files, entry points, routes, controllers, models, middleware, and config. It identifies the stack, architecture pattern, critical files, and a suitable first task.</div></div>
+        </div>
+      </div>
+      <div class="section-card" style="padding:18px 22px;">
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <div style="background:var(--ibm);color:#fff;border-radius:50%;width:30px;height:30px;min-width:30px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;">5</div>
+          <div><div style="font-weight:700;margin-bottom:4px;">Bob writes <code>docs/ONBOARDING.md</code></div><div style="font-size:13px;color:var(--muted);">A complete 10-section guide is written to your project. Bob also updates the embedded report inside this viewer so it opens correctly without any server.</div></div>
+        </div>
+      </div>
+      <div class="section-card" style="padding:18px 22px;">
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <div style="background:var(--green);color:#fff;border-radius:50%;width:30px;height:30px;min-width:30px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;">6</div>
+          <div><div style="font-weight:700;margin-bottom:4px;">Open <code>viewer/index.html</code></div><div style="font-size:13px;color:var(--muted);">Double-click in Windows Explorer. No server, no Node.js, no npm required. The guide loads immediately from the embedded content.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--ibm-bg);border:1px solid #bbd4ff;border-radius:var(--radius-lg);padding:20px 22px;margin-bottom:28px;">
+      <div style="font-size:12.5px;font-weight:700;color:var(--ibm);margin-bottom:6px;">Bob configuration files</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.75;">
+        <code>.bob/custom_modes.yaml</code> &#8212; New Dev mode and read-only permissions<br>
+        <code>.bob/skills/onboarding/SKILL.md</code> &#8212; 3-phase analysis workflow<br>
+        <code>.bob/commands/onboard.md</code> &#8212; the <code>/onboard</code> slash command<br>
+        <code>.bob/rules/onboarding-rules.md</code> &#8212; always-on safety and output rules
+      </div>
+    </div>
+
+    <div style="text-align:center;">
+      <button class="btn-primary" onclick="showScreen('analyze')">Try the Demo</button>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: ANALYZE
+════════════════════════════════════════════ -->
+<section class="screen" id="screen-analyze">
+  <div class="analyze-inner">
+    <h2>Analyze a Codebase</h2>
+    <p class="sub">IBM Bob will read the project, identify the architecture, and generate a structured onboarding guide.</p>
+
+    <div class="project-info-card">
+      <div class="pi-header">
+        <div class="pi-icon">&#x26A1;</div>
+        <div>
+          <div class="pi-name">TaskFlow API</div>
+          <div class="pi-tag">sample-project/ &#8212; Node.js / Express / PostgreSQL / Redis</div>
+        </div>
+      </div>
+      <div class="pi-stats">
+        <div class="pi-stat"><div class="stat-num">26</div><div class="stat-lbl">Source files</div></div>
+        <div class="pi-stat"><div class="stat-num">7</div><div class="stat-lbl">Layers</div></div>
+        <div class="pi-stat"><div class="stat-num">15</div><div class="stat-lbl">Dependencies</div></div>
+      </div>
+    </div>
+
+    <div class="ibm-notice">
+      <div class="notice-icon">&#x26A1;</div>
+      <div class="notice-text">
+        <strong>IBM Bob</strong> performs this analysis. Bob reads the project&#8217;s source files,
+        identifies the technology stack and architecture, maps important files and dependencies,
+        and generates <code>docs/ONBOARDING.md</code>.
+        This demo loads the guide already generated by Bob for the TaskFlow API sample project.
+      </div>
+    </div>
+
+    <button class="analyze-btn" onclick="startAnalysis()">&#x26A1; Analyze with IBM Bob</button>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: PROCESSING
+════════════════════════════════════════════ -->
+<section class="screen" id="screen-processing">
+  <div class="processing-inner">
+    <div class="ibm-logo">&#x26A1;</div>
+    <h2>IBM Bob is analyzing&#x2026;</h2>
+    <p class="sub">Reading source files, detecting architecture, and generating your onboarding guide.</p>
+
+    <div class="processing-steps" id="proc-steps">
+      <div class="proc-step" id="ps-0"><div class="step-icon">&#x1F4C2;</div><span>Scanning project structure</span></div>
+      <div class="proc-step" id="ps-1"><div class="step-icon">&#x1F3D7;&#xFE0F;</div><span>Detecting architecture pattern</span></div>
+      <div class="proc-step" id="ps-2"><div class="step-icon">&#x1F4E6;</div><span>Understanding dependencies</span></div>
+      <div class="proc-step" id="ps-3"><div class="step-icon">&#x1F4C1;</div><span>Mapping important files</span></div>
+      <div class="proc-step" id="ps-4"><div class="step-icon">&#x270D;&#xFE0F;</div><span>Generating onboarding guide</span></div>
+    </div>
+
+    <div class="processing-bar"><div class="processing-bar-fill" id="proc-bar"></div></div>
+    <div class="processing-pct" id="proc-pct">0%</div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: REPORT
+════════════════════════════════════════════ -->
+<section class="screen" id="screen-report">
+
+  <aside id="sidebar">
+    <div class="sidebar-project">
+      <div class="sp-name" id="sidebar-proj-name">Onboarding Report</div>
+      <div class="sp-meta">Generated by IBM Bob</div>
+      <div class="sp-badge">&#x26A1; IBM Bob</div>
+    </div>
+    <nav id="nav">
+      <div class="nav-label">Report Sections</div>
+    </nav>
+    <div class="sidebar-back">
+      <button onclick="showScreen('home')">&#x2190; Back to Home</button>
+    </div>
+    <div class="sidebar-footer">
+      <a href="https://www.ibm.com/bob" target="_blank">IBM Bob</a> &#183; IBM Bob 2.0 Hackathon
+    </div>
+  </aside>
+
+  <div id="main">
+    <div id="topbar">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button id="menu-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">&#x2630;</button>
+        <div id="project-title" class="project-title">Onboarding Report</div>
+      </div>
+      <div class="meta" id="top-meta"></div>
+    </div>
+    <div id="content">
+      <div id="status"><div class="spinner"></div><div>Loading report&#x2026;</div></div>
+    </div>
+    <div class="report-footer" id="footer" style="display:none;">
+      <div>Generated by <strong>DevOnboard</strong> &#8212; IBM Bob 2.0 Hackathon</div>
+      <div style="margin-top:6px;"><span class="ibm-badge">&#x26A1; Powered by IBM Bob</span></div>
+    </div>
+  </div>
+</section>
+
+<button id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">&#x2191;</button>
+
+<script>
+// ── Embedded report (written by IBM Bob — do not edit manually) ───────────────
+// When the viewer is opened as a local file:// the browser blocks fetch() for
+// cross-origin file reads. The content of docs/ONBOARDING.md is therefore also
+// stored here so the viewer works without any server or Node.js.
+// Bob automatically updates this block every time it writes docs/ONBOARDING.md.
+// EMBEDDED_REPORT_START
+var EMBEDDED_REPORT = "# \uD83E\uDDED Onboarding Guide: TaskFlow API\n\n> A production-ready RESTful task management API that provides JWT authentication, team collaboration, task assignment, and real-time notifications \u2014 built for teams who need a reliable backend to power task-tracking applications.\n\n**Generated:** 2025-07-15  \n**Analyzed by:** IBM Bob (DevOnboard)  \n\n---\n\n## 1. \uD83D\uDCCB Project Overview\n\nTaskFlow API is a Node.js/Express backend that exposes a JSON REST API for managing tasks, users, and teams. It handles user registration and login using JSON Web Tokens (with short-lived access tokens and Redis-backed refresh tokens), full task CRUD with filtering by status, priority, and team, and real-time push notifications via Socket.io when tasks change. The codebase is structured as a classic MVC monolith \u2014 a single deployable service well-suited for small-to-medium teams. It is intended to back a frontend client (e.g. a React/Vue SPA) and ships with rate limiting, structured logging, and a global error handler ready for production use.\n\n---\n\n## 2. \uD83D\uDEE0\uFE0F Technology Stack\n\n| Layer | Technology | Version |\n|---|---|---|\n| Language | JavaScript (CommonJS) | ES2020+ |\n| Runtime | Node.js | \u2265 18.0.0 |\n| Framework | Express | 4.x |\n| Database | PostgreSQL | 15+ |\n| ORM / Query | Knex.js | 3.x |\n| Cache / Sessions | Redis | 7.x |\n| Real-time | Socket.io | 4.x |\n| Testing | Jest + Supertest | 29.x / 6.x |\n| Build tool | none (plain Node.js) | \u2014 |\n| Linting | ESLint | 8.x |\n| Formatting | Prettier | 3.x |\n| Containerisation | none (manual install) | \u2014 |\n\n---\n\n## 3. \uD83D\uDE80 How to Run the Project\n\n### Prerequisites\n\n- Node.js \u2265 18.0.0 (LTS recommended)\n- npm \u2265 9\n- PostgreSQL 15+ running locally or via a cloud service\n- Redis 7+ running locally or via a cloud service\n\n### Steps\n\n```bash\n# 1. Clone the repository\ngit clone https://github.com/your-org/taskflow-api.git\ncd taskflow-api\n\n# 2. Install dependencies\nnpm install\n\n# 3. Set up environment variables\ncp .env.example .env\n# Edit .env \u2014 at minimum fill in DATABASE_URL, REDIS_URL, JWT_SECRET, JWT_REFRESH_SECRET\n\n# 4. Run database migrations (creates all tables)\nnpm run migrate\n\n# 5. (Optional) Seed the database with demo data\nnpm run seed\n\n# 6. Start the development server (hot reload via nodemon)\nnpm run dev\n```\n\nThe API will be available at: `http://localhost:3000`  \nHealth check: `GET http://localhost:3000/health`\n\n---\n\n## 4. \uD83D\uDCC1 Important Files & Folders\n\n| Path | Purpose |\n|---|---|\n| `src/index.js` | Entry point \u2014 initializes DB, Redis, Socket.io, then starts the HTTP server |\n| `src/app.js` | Express app factory \u2014 registers all middleware and mounts route groups |\n| `src/routes/` | Route definitions (thin \u2014 delegate immediately to controllers) |\n| `src/controllers/` | Business logic for each resource (auth, tasks, teams, users) |\n| `src/models/` | Database query functions using Knex.js (one file per entity) |\n| `src/middleware/` | Cross-cutting concerns: JWT auth, role authorization, input validation, error handling |\n| `src/config/` | Infrastructure init: database connection, Redis client, Socket.io server, Winston logger |\n| `.env.example` | Template for all required and optional environment variables |\n| `package.json` | npm scripts, runtime and dev dependencies, Jest config |\n\n---\n\n## 5. \uD83C\uDFD7\uFE0F Architecture Explanation\n\nTaskFlow follows a **layered MVC architecture** within a single `src/` tree. Routes are kept deliberately thin \u2014 they only declare HTTP method, path, validation chain, and controller function. All business logic lives in controllers, which call model functions for data access. Models are plain objects that wrap Knex.js query builder calls and return raw rows. Cross-cutting concerns (auth, validation, errors) are handled as Express middleware registered globally in `app.js` or locally per-route.\n\n### Request Flow\n\n```\nHTTP Request\n  \u2192 Express (app.js) \u2014 helmet, cors, morgan, rate-limit\n    \u2192 Route file (routes/*.js) \u2014 express-validator chain \u2192 validate middleware\n      \u2192 authenticate middleware (JWT verification, attaches req.user)\n        \u2192 authorize middleware (role check, attaches req.membership) [team routes only]\n          \u2192 Controller (controllers/*.js) \u2014 business logic\n            \u2192 Model (models/*.js) \u2014 Knex.js query to PostgreSQL\n              \u2192 Socket.io emitToTeam() [on mutating task/team operations]\n                \u2192 JSON Response\n```\n\n### Key Patterns\n- **Token pair auth:** Short-lived JWT access tokens (15 min) + long-lived refresh tokens stored in Redis under `refresh:{userId}` keys, allowing token revocation on logout.\n- **Middleware-first validation:** All input validation runs via `express-validator` chains declared in the route file before the controller is ever reached, keeping controllers clean.\n- **Operational errors:** The `errorHandler` middleware distinguishes known PostgreSQL error codes (e.g. `23505` unique constraint) from unexpected errors, returning user-friendly messages without leaking stack traces in production.\n- **Real-time scoping:** Socket.io rooms are scoped by team ID (`team:{teamId}`), so `emitToTeam()` in `src/config/socket.js` broadcasts only to members of the relevant team.\n\n---\n\n## 6. \uD83D\uDCE6 Dependencies\n\n### Runtime Dependencies\n\n| Package | Purpose |\n|---|---|\n| `express` | HTTP server framework \u2014 routing, middleware pipeline |\n| `knex` | SQL query builder \u2014 all database queries across models |\n| `pg` | PostgreSQL driver (used by Knex internally) |\n| `redis` | Redis client \u2014 stores refresh tokens, backs rate-limit counters |\n| `socket.io` | WebSocket server \u2014 real-time task/team event broadcasting |\n| `jsonwebtoken` | Signs and verifies JWT access and refresh tokens |\n| `bcryptjs` | Hashes and compares user passwords (12 salt rounds) |\n| `express-validator` | Declarative request validation chains in route files |\n| `express-rate-limit` | Per-IP global rate limiting (configurable via env) |\n| `helmet` | Sets secure HTTP response headers automatically |\n| `cors` | Handles CORS preflight and allowed-origin enforcement |\n| `morgan` | HTTP request logging in `combined` format |\n| `winston` | Structured application logging (JSON in prod, pretty in dev) |\n| `dotenv` | Loads `.env` file into `process.env` at startup |\n| `uuid` | Generates UUIDs (v4) for new resource IDs |\n\n### Dev Dependencies\n\n| Package | Purpose |\n|---|---|\n| `jest` | Test runner (configured with 70% line coverage threshold) |\n| `supertest` | HTTP assertion library for integration testing Express apps |\n| `nodemon` | File watcher that restarts the server on source changes (`npm run dev`) |\n| `eslint` | JavaScript linter (`npm run lint`) |\n| `prettier` | Code formatter (`npm run format`) |\n\n---\n\n## 7. \u2699\uFE0F Configuration & Environment Variables\n\n| Variable | Required | Default | Description |\n|---|---|---|---|\n| `DATABASE_URL` | \u2705 Yes | \u2014 | PostgreSQL connection string, e.g. `postgresql://user:pass@localhost:5432/taskflow_dev` |\n| `REDIS_URL` | \u2705 Yes | \u2014 | Redis connection string, e.g. `redis://localhost:6379` |\n| `JWT_SECRET` | \u2705 Yes | \u2014 | Secret key for signing access tokens \u2014 generate with `node -e \"console.log(require('crypto').randomBytes(64).toString('hex'))\"` |\n| `JWT_REFRESH_SECRET` | \u2705 Yes | \u2014 | Separate secret for signing refresh tokens \u2014 generate the same way |\n| `NODE_ENV` | \u26a0\uFE0F Optional | `development` | `production` enables JSON logging and file log transports |\n| `PORT` | \u26a0\uFE0F Optional | `3000` | TCP port the server listens on |\n| `HOST` | \u26a0\uFE0F Optional | `localhost` | Bind address |\n| `CORS_ORIGIN` | \u26a0\uFE0F Optional | `*` | Allowed origin for CORS, e.g. `http://localhost:5173` |\n| `LOG_LEVEL` | \u26a0\uFE0F Optional | `info` | Winston log level (`debug`, `info`, `warn`, `error`) |\n| `JWT_ACCESS_EXPIRES_IN` | \u26a0\uFE0F Optional | `15m` | Access token expiry duration |\n| `JWT_REFRESH_EXPIRES_IN` | \u26a0\uFE0F Optional | `7d` | Refresh token expiry duration |\n| `DB_POOL_MIN` | \u26a0\uFE0F Optional | `2` | Minimum Knex connection pool size |\n| `DB_POOL_MAX` | \u26a0\uFE0F Optional | `10` | Maximum Knex connection pool size |\n| `REDIS_TTL_SECONDS` | \u26a0\uFE0F Optional | `604800` (7d) | TTL for refresh tokens stored in Redis |\n| `RATE_LIMIT_WINDOW_MS` | \u26a0\uFE0F Optional | `900000` (15min) | Rate limit sliding window in milliseconds |\n| `RATE_LIMIT_MAX_REQUESTS` | \u26a0\uFE0F Optional | `100` | Maximum requests per window per IP |\n| `SOCKET_IO_PING_TIMEOUT` | \u26a0\uFE0F Optional | `5000` | Socket.io ping timeout (ms) |\n| `SOCKET_IO_PING_INTERVAL` | \u26a0\uFE0F Optional | `10000` | Socket.io ping interval (ms) |\n| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` | \u26a0\uFE0F Optional | \u2014 | SMTP credentials for team invitation emails |\n\n> **Note:** `JWT_SECRET` and `JWT_REFRESH_SECRET` must never be shared or committed. Generate fresh random values for every environment.\n\n---\n\n## 8. \uD83D\uDDA5\uFE0F Common Development Commands\n\n```bash\n# Start development server (hot reload via nodemon)\nnpm run dev\n\n# Start production server\nnpm start\n\n# Run all tests\nnpm test\n\n# Run tests with coverage report (threshold: 70% lines)\nnpm run test:coverage\n\n# Lint the codebase\nnpm run lint\n\n# Auto-fix lint errors\nnpm run lint:fix\n\n# Format all source files with Prettier\nnpm run format\n\n# Run database migrations (creates/updates tables)\nnpm run migrate\n\n# Seed the database with demo data\nnpm run seed\n```\n\n---\n\n## 9. \uD83D\uDCDA Recommended Learning Order\n\nRead the codebase in this order to build understanding progressively:\n\n1. **`README.md`** \u2014 Start here: project purpose, API surface, and setup overview\n2. **`package.json`** \u2014 Understand available scripts, all dependencies, and Jest config\n3. **`.env.example`** \u2014 Learn every configuration knob before touching any code\n4. **`src/index.js`** \u2014 See how the app bootstraps: DB, Redis, Socket.io, graceful shutdown\n5. **`src/app.js`** \u2014 Understand the middleware pipeline and how routes are mounted\n6. **`src/middleware/authenticate.js`** \u2014 The JWT verification pattern used by every protected route\n7. **`src/routes/tasks.js`** \u2014 See the full validation chain + route-to-controller delegation pattern\n8. **`src/controllers/tasksController.js`** \u2014 Business logic, ownership checks, and Socket.io emission\n9. **`src/models/taskModel.js`** \u2014 How Knex.js queries are structured; filtering + pagination pattern\n10. **`src/config/database.js`** \u2014 Knex initialization and connection pool configuration\n11. **`src/middleware/errorHandler.js`** \u2014 How PostgreSQL error codes are translated to HTTP responses\n12. **`src/config/socket.js`** \u2014 JWT auth for WebSocket connections and the team-room pattern\n\n---\n\n## 10. \uD83C\uDFAF Suggested First Task\n\n**Task:** Add a `GET /api/tasks/:id/comments` endpoint that returns a paginated list of comments for a specific task.\n\n**Why this task:**  \nIt follows the exact same layered pattern used by every other resource in the codebase \u2014 you will touch a route file, a controller, and a model \u2014 giving you a complete end-to-end pass through the architecture without modifying any existing, tested code paths.\n\n**Scope:**\n- Create `src/models/commentModel.js` with a `findByTaskId({ taskId, pagination })` function using Knex\n- Create `src/controllers/commentsController.js` with a `listByTask` handler that enforces task ownership (see `tasksController.getById` for the ownership pattern)\n- Add `GET /:id/comments` to `src/routes/tasks.js` with UUID param validation and the `authenticate` middleware\n- Write at least one Jest + Supertest integration test covering the 200 and 404 cases\n\n**Files to modify/create:**\n- `src/models/commentModel.js` \u2014 new file; implement `findByTaskId` with Knex pagination\n- `src/controllers/commentsController.js` \u2014 new file; implement `listByTask`, reuse ownership check from `tasksController`\n- `src/routes/tasks.js` \u2014 add the new GET route after the existing `/:id` route\n- `tests/comments.test.js` \u2014 new test file using Supertest\n\n**Estimated effort:** 1\u20132 days\n\n---\n\n_Generated by [DevOnboard](https://github.com/your-org/DevOnboard) \u00b7 Powered by [IBM Bob](https://www.ibm.com/bob)_\n";
+// EMBEDDED_REPORT_END
+
+// ── Screen router ─────────────────────────────────────────────────────────────
+var SCREENS = ['home','howitworks','analyze','processing','report'];
+var NAV_IDS = { home:'nav-home', howitworks:'nav-how', analyze:'nav-analyze', report:'nav-report' };
+var reportLoaded = false;
+var reportMarkdown = '';
+
+function showScreen(name) {
+  SCREENS.forEach(function(s) {
+    var el = document.getElementById('screen-' + s);
+    if (el) el.classList.remove('active');
+  });
+  var target = document.getElementById('screen-' + name);
+  if (target) {
+    target.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+  // Update nav active state
+  Object.keys(NAV_IDS).forEach(function(k) {
+    var a = document.getElementById(NAV_IDS[k]);
+    if (a) a.classList.remove('active');
+  });
+  if (NAV_IDS[name]) {
+    var active = document.getElementById(NAV_IDS[name]);
+    if (active) active.classList.add('active');
+  }
+  // Show/hide sidebar (only on report screen)
+  var sidebar = document.getElementById('sidebar');
+  if (sidebar) sidebar.classList.remove('open');
+}
+
+function goToReport() {
+  if (reportLoaded) {
+    showScreen('report');
+  } else {
+    loadAndShowReport();
+  }
+}
+
+function selectProject(id) {
+  document.querySelectorAll('.project-card').forEach(function(c) { c.classList.remove('selected'); });
+  var card = document.getElementById('proj-' + id);
+  if (card) card.classList.add('selected');
+}
+
+// ── Analysis animation then show report ──────────────────────────────────────
+function startAnalysis() {
+  showScreen('processing');
+  runProcessingAnimation(function() {
+    loadAndShowReport();
+  });
+}
+
+function runProcessingAnimation(onDone) {
+  var steps = [
+    { id: 'ps-0', pct: 20  },
+    { id: 'ps-1', pct: 40  },
+    { id: 'ps-2', pct: 60  },
+    { id: 'ps-3', pct: 80  },
+    { id: 'ps-4', pct: 100 },
+  ];
+  var bar  = document.getElementById('proc-bar');
+  var pct  = document.getElementById('proc-pct');
+
+  // Reset
+  steps.forEach(function(s) {
+    var el = document.getElementById(s.id);
+    if (!el) return;
+    el.classList.remove('done', 'running');
+    el.innerHTML = el.innerHTML.replace(/<div class="step-spin"><\/div>/, '');
+    var icon = el.querySelector('.step-icon');
+    if (icon) icon.style.display = '';
+  });
+  if (bar) { bar.style.width = '0%'; bar.style.transition = 'none'; }
+  if (pct) pct.textContent = '0%';
+
+  var i = 0;
+  function tick() {
+    if (i >= steps.length) {
+      setTimeout(onDone, 400);
+      return;
+    }
+    // Mark previous done
+    if (i > 0) {
+      var prev = document.getElementById(steps[i-1].id);
+      if (prev) {
+        prev.classList.remove('running');
+        prev.classList.add('done');
+        var spin = prev.querySelector('.step-spin');
+        if (spin) spin.remove();
+        var prevIcon = prev.querySelector('.step-icon');
+        if (prevIcon) prevIcon.style.display = '';
+      }
+    }
+    // Mark current running
+    var cur = document.getElementById(steps[i].id);
+    if (cur) {
+      cur.classList.add('running');
+      var curIcon = cur.querySelector('.step-icon');
+      if (curIcon) curIcon.style.display = 'none';
+      var spinEl = document.createElement('div');
+      spinEl.className = 'step-spin';
+      cur.insertBefore(spinEl, cur.querySelector('span'));
+    }
+    // Update bar
+    if (bar) {
+      bar.style.transition = 'width .5s ease';
+      bar.style.width = steps[i].pct + '%';
+    }
+    if (pct) pct.textContent = steps[i].pct + '%';
+
+    i++;
+    setTimeout(tick, 700);
+  }
+  tick();
+}
+
+// ── Load and render report ────────────────────────────────────────────────────
+function loadAndShowReport() {
+  if (reportLoaded) { showScreen('report'); return; }
+
+  if (window.location.protocol === 'file:') {
+    if (EMBEDDED_REPORT && EMBEDDED_REPORT.trim()) {
+      reportMarkdown = EMBEDDED_REPORT;
+      renderReport(reportMarkdown);
+      reportLoaded = true;
+      showScreen('report');
+    } else {
+      showError();
+      showScreen('report');
+    }
+    return;
+  }
+
+  var candidates = ['../docs/ONBOARDING.md', './docs/ONBOARDING.md', 'ONBOARDING.md'];
+  var tried = 0;
+  function tryNext() {
+    if (tried >= candidates.length) {
+      if (EMBEDDED_REPORT && EMBEDDED_REPORT.trim()) {
+        reportMarkdown = EMBEDDED_REPORT;
+        renderReport(reportMarkdown);
+        reportLoaded = true;
+        showScreen('report');
+      } else {
+        showError();
+        showScreen('report');
+      }
+      return;
+    }
+    var path = candidates[tried++];
+    fetch(path)
+      .then(function(res) { if (res.ok) return res.text(); throw new Error('no'); })
+      .then(function(text) {
+        reportMarkdown = text;
+        renderReport(text);
+        reportLoaded = true;
+        showScreen('report');
+      })
+      .catch(tryNext);
+  }
+  tryNext();
+}
+
+// ── Minimal Markdown renderer ─────────────────────────────────────────────────
+function renderMarkdown(md) {
+  var codeBlocks = [];
+  md = md.replace(/```(\w*)\n([\s\S]*?)```/g, function(_, lang, code) {
+    var idx = codeBlocks.length;
+    codeBlocks.push({ lang: lang, code: escHtml(code.trimEnd()) });
+    return '\x00CODE' + idx + '\x00';
+  });
+  md = md.replace(/`([^`\n]+)`/g, function(_, c) { return '<code>' + escHtml(c) + '</code>'; });
+
+  var lines = md.split('\n');
+  var out = [];
+  var inTable = false, tableRows = [];
+  var inList = false, listType = 'ul', listItems = [];
+
+  function flushList() {
+    if (listItems.length) {
+      var tag = listType;
+      out.push('<' + tag + '>' + listItems.map(function(i) { return '<li>' + i + '</li>'; }).join('') + '</' + tag + '>');
+      listItems = []; inList = false;
+    }
+  }
+  function flushTable() {
+    if (tableRows.length < 2) { tableRows = []; inTable = false; return; }
+    var headers = tableRows[0];
+    var body = tableRows.slice(2);
+    var h = '<div class="table-wrap"><table><thead><tr>';
+    headers.forEach(function(c) { h += '<th>' + c + '</th>'; });
+    h += '</tr></thead><tbody>';
+    body.forEach(function(row) {
+      if (!row || !row.length) return;
+      h += '<tr>' + row.map(function(c) { return '<td>' + c + '</td>'; }).join('') + '</tr>';
+    });
+    h += '</tbody></table></div>';
+    out.push(h); tableRows = []; inTable = false;
+  }
+
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
+    var codeMatch = line.match(/^\x00CODE(\d+)\x00$/);
+    if (codeMatch) {
+      flushList(); flushTable();
+      var blk = codeBlocks[+codeMatch[1]];
+      out.push('<pre><code class="language-' + (blk.lang || 'text') + '">' + blk.code + '</code></pre>');
+      continue;
+    }
+    if (/^---+$/.test(line.trim())) { flushList(); flushTable(); out.push('<hr>'); continue; }
+    if (line.startsWith('|')) {
+      flushList(); inTable = true;
+      var cells = line.split('|').slice(1, -1).map(function(c) { return inlineText(c.trim()); });
+      var isSep = cells.every(function(c) { return /^[-: ]+$/.test(c.replace(/<[^>]+>/g, '')); });
+      tableRows.push(isSep ? null : cells); continue;
+    } else if (inTable) { flushTable(); }
+    var hm = line.match(/^(#{1,4})\s+(.+)$/);
+    if (hm) {
+      flushList();
+      var level = hm[1].length;
+      var text  = inlineText(hm[2]);
+      var id    = 'section-' + hm[2].replace(/[^a-zA-Z0-9 ]/g, '').trim().replace(/\s+/g, '-').toLowerCase();
+      out.push('<h' + level + ' id="' + id + '">' + text + '</h' + level + '>'); continue;
+    }
+    if (line.startsWith('> ')) { flushList(); out.push('<blockquote>' + inlineText(line.slice(2)) + '</blockquote>'); continue; }
+    if (/^\d+\.\s+/.test(line)) {
+      if (!inList || listType !== 'ol') { flushList(); listType = 'ol'; inList = true; }
+      listItems.push(inlineText(line.replace(/^\d+\.\s+/, ''))); continue;
+    }
+    if (/^[-*]\s+/.test(line)) {
+      if (!inList || listType !== 'ul') { flushList(); listType = 'ul'; inList = true; }
+      listItems.push(inlineText(line.replace(/^[-*]\s+/, ''))); continue;
+    }
+    if (inList && line.trim() === '') { flushList(); continue; }
+    if (inList) { listItems.push(inlineText(line)); continue; }
+    if (line.trim() === '') { out.push(''); } else { out.push('<p>' + inlineText(line) + '</p>'); }
+  }
+  flushList(); flushTable();
+  return out.join('\n');
+}
+
+function inlineText(text) {
+  text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/\*([^*]+)\*/g,     '<em>$1</em>');
+  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+  return text;
+}
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Section icons ─────────────────────────────────────────────────────────────
+var SECTION_ICONS = {
+  'project overview':    '📋',
+  'technology stack':    '🛠️',
+  'how to run':          '🚀',
+  'important files':     '📁',
+  'architecture':        '🏗️',
+  'dependencies':        '📦',
+  'configuration':       '⚙️',
+  'environment':         '⚙️',
+  'common dev':          '🖥️',
+  'development commands':'🖥️',
+  'recommended learning':'📚',
+  'suggested first':     '🎯',
+};
+function getSectionIcon(title) {
+  var lower = title.toLowerCase();
+  var keys = Object.keys(SECTION_ICONS);
+  for (var i = 0; i < keys.length; i++) {
+    if (lower.indexOf(keys[i]) !== -1) return SECTION_ICONS[keys[i]];
+  }
+  return '📄';
+}
+
+// ── Parse sections ────────────────────────────────────────────────────────────
+function buildSections(html) {
+  var div = document.createElement('div');
+  div.innerHTML = html;
+  var sections = [], currentSection = null, metaGenerated = '';
+  var projectTitle = 'Onboarding Report', projectDesc = '';
+  var nodes = div.childNodes;
+  for (var i = 0; i < nodes.length; i++) {
+    var node = nodes[i];
+    var tag  = node.nodeName.toLowerCase();
+    if (tag === 'h1')  { projectTitle = node.textContent.replace('🧭', '').trim(); continue; }
+    if (!sections.length && tag === 'blockquote') { projectDesc = node.textContent.trim(); continue; }
+    if (!sections.length && tag === 'p') {
+      var t = node.textContent;
+      if (t.indexOf('Generated:') === 0) metaGenerated = t.replace('Generated:', '').trim();
+      continue;
+    }
+    if (tag === 'hr') continue;
+    if (tag === 'h2') {
+      currentSection = {
+        id: node.id || ('s' + sections.length),
+        title: node.textContent.replace(/^[^\w]+/, '').trim(),
+        icon:  getSectionIcon(node.textContent),
+        nodes: [],
+      };
+      sections.push(currentSection); continue;
+    }
+    if (currentSection) currentSection.nodes.push(node.outerHTML || node.textContent);
+  }
+  return { sections: sections, projectTitle: projectTitle, projectDesc: projectDesc, metaGenerated: metaGenerated };
+}
+
+// ── Render report UI ──────────────────────────────────────────────────────────
+function renderReport(markdown) {
+  var html   = renderMarkdown(markdown);
+  var parsed = buildSections(html);
+  var sections     = parsed.sections;
+  var projectTitle = parsed.projectTitle;
+  var projectDesc  = parsed.projectDesc;
+  var metaGenerated = parsed.metaGenerated;
+
+  document.title = projectTitle + ' — DevOnboard';
+
+  var titleEl = document.getElementById('project-title');
+  if (titleEl) titleEl.textContent = projectTitle;
+
+  var spName = document.getElementById('sidebar-proj-name');
+  if (spName) spName.textContent = projectTitle;
+
+  var topMeta = document.getElementById('top-meta');
+  if (topMeta) topMeta.innerHTML = metaGenerated
+    ? '<span>&#x1F4C5; ' + metaGenerated + '</span><span class="badge badge-ibm">IBM Bob</span>'
+    : '<span class="badge badge-ibm">IBM Bob</span>';
+
+  // Build sidebar nav
+  var nav = document.getElementById('nav');
+  nav.innerHTML = '<div class="nav-label">Report Sections</div>';
+  sections.forEach(function(s) {
+    var a = document.createElement('a');
+    a.href = '#' + s.id;
+    a.innerHTML = '<span class="nav-icon">' + s.icon + '</span>' + s.title;
+    a.addEventListener('click', function() {
+      if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+    });
+    nav.appendChild(a);
+  });
+
+  // Build content
+  var content = document.getElementById('content');
+  content.innerHTML = '';
+
+  // Hero
+  var hero = document.createElement('div');
+  hero.className = 'hero-card section-card';
+  hero.innerHTML =
+    '<h1>' + projectTitle + '</h1>' +
+    (projectDesc ? '<p class="hero-desc">' + projectDesc + '</p>' : '') +
+    '<div class="hero-meta">' +
+    '<span class="badge">&#x1F9ED; DevOnboard</span>' +
+    '<span class="badge">&#x26A1; IBM Bob</span>' +
+    (metaGenerated ? '<span class="badge">&#x1F4C5; ' + metaGenerated + '</span>' : '') +
+    '</div>';
+  content.appendChild(hero);
+
+  // Sections
+  sections.forEach(function(s) {
+    var card = document.createElement('div');
+    card.className = 'section-card'; card.id = s.id;
+    var heading = document.createElement('h2');
+    heading.innerHTML = '<span>' + s.icon + '</span>' + s.title;
+    card.appendChild(heading);
+    var body = document.createElement('div');
+    body.innerHTML = s.nodes.join('\n');
+    card.appendChild(body);
+    content.appendChild(card);
+  });
+
+  var footer = document.getElementById('footer');
+  if (footer) footer.style.display = '';
+  observeSections();
+}
+
+// ── Scroll spy ────────────────────────────────────────────────────────────────
+function observeSections() {
+  var cards = document.querySelectorAll('#content .section-card[id]');
+  var links = document.querySelectorAll('#nav a');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        links.forEach(function(l) { l.classList.remove('active'); });
+        var a = document.querySelector('#nav a[href="#' + entry.target.id + '"]');
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  cards.forEach(function(c) { observer.observe(c); });
+}
+
+// ── Scroll-to-top ─────────────────────────────────────────────────────────────
+window.addEventListener('scroll', function() {
+  var btn = document.getElementById('scroll-top');
+  if (!btn) return;
+  if (window.scrollY > 300) btn.classList.add('visible');
+  else btn.classList.remove('visible');
+});
+
+// ── Sidebar / Mobile ──────────────────────────────────────────────────────────
+function toggleSidebar() {
+  var s = document.getElementById('sidebar');
+  if (s) s.classList.toggle('open');
+}
+function toggleMobileNav() {
+  var links = document.querySelector('.global-nav .nav-links');
+  if (!links) return;
+  links.style.display = links.style.display === 'flex' ? 'none' : 'flex';
+  links.style.flexDirection = 'column';
+  links.style.position = 'absolute';
+  links.style.top = '56px';
+  links.style.left = '0'; links.style.right = '0';
+  links.style.background = 'var(--bg)';
+  links.style.borderBottom = '1px solid var(--border)';
+  links.style.padding = '8px 0';
+  links.style.zIndex = '400';
+}
+
+// ── Error state ───────────────────────────────────────────────────────────────
+function showError() {
+  var content = document.getElementById('content');
+  if (!content) return;
+  content.innerHTML =
+    '<div id="status">' +
+    '<div style="font-size:48px;">&#x1F4C4;</div>' +
+    '<div style="font-size:17px;font-weight:700;color:var(--text)">No onboarding report found</div>' +
+    '<div style="max-width:400px;text-align:center;line-height:1.6;color:var(--muted);">' +
+    'Run <code>/onboard</code> in IBM Bob (&#x1F9ED; New Dev Onboarding mode) to generate ' +
+    '<code>docs/ONBOARDING.md</code>. Bob will update the embedded report in this viewer automatically.' +
+    '</div></div>';
+}
+
+// ── Auto-load report in background so Report nav link is instant ──────────────
+// Pre-load silently so clicking "Report" in nav works even before "Analyze".
+(function preload() {
+  if (window.location.protocol === 'file:') {
+    if (EMBEDDED_REPORT && EMBEDDED_REPORT.trim()) {
+      reportMarkdown = EMBEDDED_REPORT;
+      renderReport(reportMarkdown);
+      reportLoaded = true;
+    }
+    return;
+  }
+  var candidates = ['../docs/ONBOARDING.md', './docs/ONBOARDING.md', 'ONBOARDING.md'];
+  var tried = 0;
+  function tryNext() {
+    if (tried >= candidates.length) {
+      if (EMBEDDED_REPORT && EMBEDDED_REPORT.trim()) {
+        reportMarkdown = EMBEDDED_REPORT;
+        renderReport(reportMarkdown);
+        reportLoaded = true;
+      }
+      return;
+    }
+    var path = candidates[tried++];
+    fetch(path)
+      .then(function(r) { if (r.ok) return r.text(); throw 0; })
+      .then(function(text) { reportMarkdown = text; renderReport(text); reportLoaded = true; })
+      .catch(tryNext);
+  }
+  tryNext();
+}());
+</script>
+</body>
+</html>
